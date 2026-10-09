@@ -1,7 +1,7 @@
 import sys
 import json
 
-tasks = [{'id':1}, {'id':3}]
+tasks: list[dict] = [{'id':1}, {'id':3}]
 
 
 def todo(command):
