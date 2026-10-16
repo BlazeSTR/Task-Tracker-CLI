@@ -19,7 +19,7 @@ def todo(command):
                 if len(sys.argv) < 3:
                     print("you need another argument for add")
                 else: 
-                    task_name = str(sys.argv[2])
+                    task_name = sys.argv[2]
                     next_id = data["next_id"]
                     data["tasks"].append({
                         "id":next_id,
@@ -44,38 +44,44 @@ def todo(command):
                     else:
                         print("No task to list.")
                 else:
-                    list_arg = sys.argv[2]
-                    if list_arg.lower() in ("done", "todo", "in-progress"):
-                        for task in data["tasks"]:
-                            if task["status"] == list_arg:
+                    list_arg = sys.argv[2].lower()
+                    if list_arg in ("done", "todo", "in-progress"):
+                        filtered_tasks = [task for task in data["tasks"] if task.get('status') == list_arg]
+                        if filtered_tasks:
+                            for task in filtered_tasks:
                                 print_task(task)
+                        else:
+                            print(f"No {list_arg} tasks are available")
+                            
                     else:
                         print("Allowed arguments for list: done, todo, in-progress")
             
             case "update":
-                if len(sys.argv) < 3:
-                    print("you need another argument for update")
-                else:
-                    task_id = int(sys.argv[2])
-                    update = input("Change status to what? (done,todo,in-progress) only!\n")
-                    if update.lower() in ("done","todo","in-progress"):
-                        for task in data["tasks"]:
-                            if task["id"] == task_id:
-                                task["status"] = update
-                                task["updated_at"] = dt.datetime.now().strftime('%I:%M %p, %Y-%m-%d')
+                if data["tasks"]:
+                    print("Which one do you want to update?")
+                    for task in data["tasks"]:
+                        print_task(task)
+                    try:
+                        task_id = int(input("Enter ID: "))
+                        filtered_task = [task for task in data["tasks"] if task.get('id') == task_id]
+                        if filtered_task:
+                            status_change = input("What status do you want to change it to? (done,todo,in-progress)\n")
+                            if status_change.lower() not in ("done", "todo", "in-progress"):
+                                print("Only (done, todo, in-progress) allowed! ")
                             else:
-                                continue
-                        file.seek(0)
-                        json.dump(data, file, indent=2)
-                        file.truncate()
-                            
+                                task = filtered_task[0]
+                                task["status"] = status_change.lower()
+                                task["updated_at"] = dt.datetime.now().strftime('%I:%M %p, %Y-%m-%d')
+                                print(f"Task (ID: {task_id}) updated successfully!")
+                                file.seek(0)
+                                json.dump(data, file, indent=2)
+                                file.truncate()
+                        else:
+                            print("No task has that ID")
+                    except ValueError: print("Only numbers allowed!")
+                else:
+                    print("There are no tasks to update..")
                 
-                    else:
-                        print("done,todo,in-progress only!")
-
-                    file.seek(0)
-                    json.dump(data, file, indent=2)
-                    file.truncate()
 
         
             case "delete":
