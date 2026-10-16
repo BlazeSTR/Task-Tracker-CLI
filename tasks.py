@@ -45,14 +45,38 @@ def todo(command):
                         print("No task to list.")
                 else:
                     list_arg = sys.argv[2]
-                    if list_arg in ("done", "todo", "in-progress"):
+                    if list_arg.lower() in ("done", "todo", "in-progress"):
                         for task in data["tasks"]:
                             if task["status"] == list_arg:
                                 print_task(task)
                     else:
                         print("Allowed arguments for list: done, todo, in-progress")
+            
             case "update":
-                pass
+                if len(sys.argv) < 3:
+                    print("you need another argument for update")
+                else:
+                    task_id = int(sys.argv[2])
+                    update = input("Change status to what? (done,todo,in-progress) only!\n")
+                    if update.lower() in ("done","todo","in-progress"):
+                        for task in data["tasks"]:
+                            if task["id"] == task_id:
+                                task["status"] = update
+                                task["updated_at"] = dt.datetime.now().strftime('%I:%M %p, %Y-%m-%d')
+                            else:
+                                continue
+                        file.seek(0)
+                        json.dump(data, file, indent=2)
+                        file.truncate()
+                            
+                
+                    else:
+                        print("done,todo,in-progress only!")
+
+                    file.seek(0)
+                    json.dump(data, file, indent=2)
+                    file.truncate()
+
         
             case "delete":
                 if len(sys.argv) < 3:
@@ -60,7 +84,10 @@ def todo(command):
                 else:
                     try:
                         task_id = int(sys.argv[2])
-                        print(f"Delete task id {task_id}")
+                        data["tasks"] = [task for task in data["tasks"] if task.get('id') != task_id]
+                        file.seek(0)
+                        json.dump(data, file, indent=2)
+                        file.truncate()
                     except ValueError: print("Expected integer as an argument for delete..")
             
 
